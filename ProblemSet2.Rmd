@@ -1,0 +1,81 @@
+---
+title: "Title of Your Report"
+author: "Names of your Group Members"
+date: "Due Date"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+#read the education data file and store the dataframe to RawData
+RawData <- read.csv('304ps2.csv') 
+# select the spcific column we want(that is respondent's education level and respondent's partner's education level)
+EducationData <- data.frame(RawData$CASEID, RawData$ehg3_01b, RawData$eop_200)
+ # rename ID colunm
+colnames(EducationData)[1]  <- 'CaseID'
+ # rename the column name from question code to a description of the question(change column 1's name from ehg3_01b to RespondentEducationLevel)
+colnames(EducationData)[2]  <- 'RespondentEducationLevel'
+ # rename the column name from question code to a description of the question(change column 2's name from eop_200 to PartnerEducationLevel)
+colnames(EducationData)[3]  <- 'PartnerEducationLevel'
+# numbers that reperents a corresponding education level
+vaildAnswer <- c(1,2,3,4,5,6,7)
+#since some respondent may don't have a partner or they reject to answer the such survey quetsion, so let's remove those resopndent from our data faram and only select resopondent who answer both question vaildly.
+EducationData <- EducationData[(EducationData$RespondentEducationLevel %in% vaildAnswer & EducationData$RespondentEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer ),]
+EducationData
+
+```
+
+## Title of your Report
+
+# Name(s) of Author(s) 
+# Date
+
+## Abstract
+
+Here is where you give a brief (one paragraph overview of your entire paper). This should include some background/introduction, some methodology, results and conclusions.
+
+## Introduction
+
+Here is where you should give insight into the setting and introduce the goal of the analysis. Here you can introduce ideas and basic concepts regarding the study setting and the potential model. Again, this is the introduction, so you should be explaining the importance of the work that is ahead and hopefully build some suspense for the reader. You can also highlight what will be included in the subsequent sections.
+
+## Data
+
+Introduce the data, explain why it was selected. Make sure to comment on important features and highlight any potential drawbacks to the data.
+
+## Model
+
+In order to see whether there is a relationship between respondent's education level and partner's education level, I am going to start with fitting the linear regression model(a statistic analysis method to see if there is a linear relation ship). \newline
+Our null hypothesis is there is no ralationship between respondent's education level and partner's education level, and we choose the significance leve of 0.05.(The significance level is a measure of the strength of the evidence that must be present in our sample before we will reject the null hypothesis and conclude that the effect is statistically significant).
+```{r}
+EducationModel <- lm(PartnerEducationLevel~RespondentEducationLevel, data = EducationData)
+summary(EducationModel)
+```
+
+
+## Results
+
+
+By fitting the linear regression model, I found that the p value of the slope parameter is < 2.2e-16, that is significantly smaller than 0.05, thus we reject our null hypothesis. The realtion can be expressed as \[ y = 0.538x + 1.734\], where y is partner's education level, and x is respondent's education level.
+
+
+
+## Discussion
+
+Here you will discuss conclusions drawn from the results and comment on how it relates to the original goal of the study (which was specified in the Introduction).
+
+# Weaknesses
+
+Here we discuss weaknesses of the study, data, analysis, etc. You can also discuss areas for improvement.
+
+# Next Steps
+
+Here you discuss subsequent work to be done after this report. This can include next steps in terms of statistical analysis (perhaps there is a more efficient algorithm available, or perhaps there is a caveat in the data that would allow for some new technique). Future steps should also be specified in terms of the study setting (eg. including a follow-up survey on something, or a subsequent study that would complement the conclusions of your report).
+
+
+## References
+
+
+
