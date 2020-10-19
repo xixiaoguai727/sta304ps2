@@ -1,90 +1,233 @@
 ---
-title: "Title of Your Report"
-author: "Names of your Group Members"
-date: "Due Date"
-output: pdf_document
+title: "Marriage of Equivalents Turns Into Norm"
+author: 'Group 130: Jie Huang(1004925156) & Qing Li(1005148010) & Xi Zheng(1005153628)'
+date: "2020/10/19"
+output:
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+#install all packages that we used
+#install.packages('scatterplot3d')
+library(scatterplot3d)
+library(dplyr)
 
 ```
 
-```{r}
+```{r, message = FALSE, echo=FALSE, include=FALSE}
 #read the education data file and store the dataframe to RawData
 RawData <- read.csv('new304.csv') 
-# select the spcific column we want(that is respondent's education level and respondent's partner's education level)
+# select the specific column we want(that is respondent's education level and respondent's partner's education level)
 EducationData <- data.frame(RawData$CASEID, RawData$ehg3_01b, RawData$eop_200, RawData$ttlincg2)
- # rename ID colunm
+ # rename ID column
 colnames(EducationData)[1]  <- 'CaseID'
  # rename the column name from question code to a description of the question(change column 1's name from ehg3_01b to RespondentEducationLevel)
 colnames(EducationData)[2]  <- 'RespondentEducationLevel'
  # rename the column name from question code to a description of the question(change column 2's name from eop_200 to PartnerEducationLevel)
 colnames(EducationData)[3]  <- 'PartnerEducationLevel'
-# numbers that reperents a corresponding education level
+# rename the column name from a question code to a description of the question(change column 4's name from ttlincg2 to RespondentIncome)
 colnames(EducationData)[4]  <- 'RespondentIncome'
+# numbers that represents a corresponding income range
 validIncome <- c(1,2,3,4,5,6)
+# numbers that represents a corresponding education level
 vaildAnswer <- c(1,2,3,4,5,6,7)
-#since some respondent may don't have a partner or they reject to answer the such survey quetsion, so let's remove those resopndent from our data faram and only select resopondent who answer both question vaildly.
+#since some respondent may don't have a partner or they reject to answer the such survey question, so let's remove those respondent from our data frame and only select respondent who answer both question validly.
 EducationData <- EducationData[(EducationData$RespondentEducationLevel %in% vaildAnswer & EducationData$RespondentEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer & EducationData$RespondentIncome %in% validIncome),]
-EducationData
-summary(EducationData)
-hist(EducationData$RespondentEducationLevel)
-hist(EducationData$PartnerEducationLevel)
-hist(EducationData$RespondentIncome)
-
-
 ```
 
-## Title of your Report
-
-# Name(s) of Author(s) 
-# Date
+Code and data supporting this analysis is available at: https://github.com/xixiaoguai727/sta304ps2
 
 ## Abstract
 
-Here is where you give a brief (one paragraph overview of your entire paper). This should include some background/introduction, some methodology, results and conclusions.
+Marriage of equivalents means people choose partners with similar education levels, earnings, values of the original family, and lifestyle. In this report, we build a statistical model and aim to estimate the education level of partners based on the education level and income of respondents from the 2017 Canadian General Social Survey--Family. By analyzing this model, we find that the education level and income of the respondents are positively related to the education level of their partners. In other words, our model justifies the idea of marriage of equivalents turns into the norm.
 
 ## Introduction
 
-Here is where you should give insight into the setting and introduce the goal of the analysis. Here you can introduce ideas and basic concepts regarding the study setting and the potential model. Again, this is the introduction, so you should be explaining the importance of the work that is ahead and hopefully build some suspense for the reader. You can also highlight what will be included in the subsequent sections.
+
+Nowadays, more and more people put backgrounds in the first place to consider when they are choosing partners, “the  equality of marriage becomes the norm”[7]. The change of the original criteria for choosing a spouse influences society a lot. As highly educated students, we are interested in how education level and income affect the assortative mating. In the step-by-step analysis, first step, we sort the dataset, and then we build a multiple linear regression model based on sorted data. Finally, we make a discussion on  the results, strengths and weaknesses of the model. 
 
 ## Data
 
-Introduce the data, explain why it was selected. Make sure to comment on important features and highlight any potential drawbacks to the data.
+We download the datasets from the Chass Data Centre, and we get the related questionnaire from Canadian General Social Survey(GSS). We use R studio to run code to help us select the valid respondents and move away from the respondents who choose the option DK(do not know the question) and RF(reject to answer the problem). \newline
+In our project, the target population is all Canadians over fifteen years old; the frame is 20602 respondents; the sample is 12199 respondents. They are the people who provide valid information about their income and education level. \newline
+The survey asks for a lot of personal related information, and many people made responses to the survey, so the survey collects diverse data for us to analyze. However, some of the questions are too private, so some respondents may refuse to answer them. This action will cause invalid information and will further lead to low accuracy. \newline
+\newpage
+Table1: Numbers With Corresponding Education Level
+\begin{tabular}{ c c c }
+ Number & Education Level \\
+ \hline
+ 1 & Less than high school diploma or its equivalent \\ 
+  \hline
+ 2 & High school diploma or high school equivalency certificate \\
+  \hline
+ 3 & Trade certificate or diploma\\
+  \hline
+ 4 & College, CEGEP or other non-university certificate or di…\\
+  \hline
+ 5 & University certificate or diploma below the bachelor’s level\\
+  \hline
+ 6 & Bachelor’s degree (e.g. B.A., B.Sc., LL.B.)\\
+  \hline
+ 7 & University certificate, diploma or degree above the bach…\\
+\end{tabular}
+\newline
+Table2: Numbers With Corresponding IncomeRange\newline
+\begin{tabular}{ c c c }
+ Number & Income before tax and unit in CAD \\
+ \hline
+ 1 & Less than 25000 \\ 
+  \hline
+ 2 & 25000 to 49999 \\
+  \hline
+ 3 & 50000 to 74999\\
+  \hline
+ 4 & 75000 to 99999\\
+  \hline
+ 5 & 100000 to 124999\\
+  \hline
+ 6 & 125000 and more\\
+\end{tabular}
+The independent variable of the education level of respondents are categorical as shown in Table1, but we are going the treated them all as numerical variable since the numbers are increasing in a way which make sense(bigger number gives higher level). The education level of their partners is a dependent variable. The other independent variable is the income of the respondent, it is a categorical variable as shown in Table2. There is no similar variable we can use from the datasets, so we are just going to use only those 3 variables. \newline
 
-## Model
+Below is the overall summary table for our dataset: \newline
+Table3: Summary Table for the Overall Dataset \newline
 
-In order to see whether there is a relationship between respondent's education level and partner's education level, I am going to start with fitting the linear regression model(a statistic analysis method to see if there is a linear relation ship). \newline
-Our null hypothesis is there is no ralationship between respondent's education level and partner's education level, and we choose the significance leve of 0.05.(The significance level is a measure of the strength of the evidence that must be present in our sample before we will reject the null hypothesis and conclude that the effect is statistically significant).
-```{r}
-EducationModel <- lm(PartnerEducationLevel~RespondentEducationLevel+as.factor(RespondentIncome), data = EducationData)
-summary(EducationModel)
+```{r, echo=FALSE}
+#write the summary table for our data
+summary(EducationData)
+```
+\newpage
+In the Plot1, the histogram of the education level of the respondent is symmetric since it has a prominent peak. From the summary table Table3, we know that the Median and the Mean of the asymmetric dataset are similar simultaneously, which is 4.000 and 3.976. We also can find that the first quarter is 2.000, and the third quarter is 6.00.\newline
+Plot1: Histogram of Respondent Education Level \newline
+```{r, echo=FALSE}
+#draw histograms for variables
+hist(EducationData$RespondentEducationLevel, main="Histogram of Respondent Education Level", xlab = "Respondent Education Level")
+```
 
+\newpage
+In Plot2, the histogram of the education level of the partner is a bimodal shape. There are two peaks from two different systems in the graph. The mean of the education level of the partner is 3.872, and the median of the education level is 4.000.\newline
+Plot2: Histogram of Partner Education Level \newline
+```{r, echo=FALSE}
+#draw histograms for variables
+hist(EducationData$PartnerEducationLevel, main="Histogram of Partner Education Level", xlab = "Partner Education Level")
+```
+\newpage
+The histogram in plot3 shows the income of the respondent has a right-skewed tail, meaning that the distribution is a positive-skew distribution. The peak of the histogram veers to the left when the mean is larger than the median. In this histogram, the IQR is Q3-Q1=3.000-1.000=2.000. The value of the IQR is the same as the value of the median. \newline
+Plot3: Histogram of Respondent Income \newline
+```{r, echo=FALSE}
+#draw histograms for variables
+hist(EducationData$RespondentIncome,  main="Histogram of Respondent Income", xlab = "Respondent Income")
 ```
 
 
+## Model
+
+
+We use R studio to build a multiple linear regression model to see an association between the two independent variables and the response variable. Additionally, it is appropriate to use a multiple regression model to analyze the datasets because we want to predict the value of a variable based on the amount of two or more other variables. Besides, we set up a null hypothesis that the coefficients of two predictor variables are equal to zero, indicating no association between the two predictor variables and the response variable. \newline
+Furthermore, we choose the significance level of 0.05. Significance level is "a measure of the strength of the evidence that must be present in our sample before we will reject the null hypothesis and conclude that the effect is statistically significant"[3], and we will compare it to the p-value we got to see if we should reject the null hypothesis or not, "p-value is a measure of the probability that an observed difference could have occurred just by random chance and the lower the p-value, the greater the statistical significance of the observed difference"[2]. \newline
+This is the euqation produced by our moduel:\newline
+Equation1: Predict Equation
+\[y = 1.736+0.519X_{ResspondentEducationLevel} - 0.023X_{RespondentIncome2} + 0.095X_{RespondentIncome3}\]
+\[+ 0.212X_{RespondentIncome4} + 0.152X_{RespondentIncome5} + 0.445X_{RespondentIncome6}\]
+This can be interpreted as the education level of a partner equals 1.736 plus 0.519 times the education level of the respondent plus the specific coefficient times the income range where the respondent is in.\newline
+Where the intercept parameter  1.736 is the education level when the education level and income range for the respondent are both zero which is impossible since the lower limit for those two variables is 1. 0.519 is the slope parameter for education level for the respondent, and another coefficient is the slope parameter for income range for the respondent.\newline
+
+One possible alternative model to replace the multiple linear regression model is a simple linear model. The advantage of using simple linear regression is that we can quickly check if there is a relationship between the education level of respondents and the education level of their partners. However, having only one variable is not accurate enough to estimate the response variable. \newline
+
+Moreover, to build the model, we treat the income of respondents as a categorical variable because the survey did not ask for a specific income number, so we keep this dataset as categorical. \newline
+Next, ideally, education level should be categorical, but we treat the education level as a numerical variable in this model. Furthermore, the weakness of treating education level as numerical is that the number from 1 to 7 can not summarize all education levels. \newline
+
+
+
+
 ## Results
+By fitting the linear regression model, I found that the p value in in the summary table Table 4 is < 2.2e-16, that is significantly smaller than 0.05, thus we reject our null hypothesis. Thus Equation1 in moduel section makes sense. \newline
+Table4: Summary Table for Regression Model
+```{r, echo=FALSE}
+#multiple variable linear regression model for Education Data
+EducationModel <- lm(PartnerEducationLevel~RespondentEducationLevel+as.factor(RespondentIncome), data = EducationData)
+#summary of our Education Model
+summary(EducationModel)
 
 
-By fitting the linear regression model, I found that the p value of the slope parameter is < 2.2e-16, that is significantly smaller than 0.05, thus we reject our null hypothesis. The realtion can be expressed as \[ y = 0.538x + 1.734\], where y is partner's education level, and x is respondent's education level.
+```
+\newpage
+Now we are going to do some diagnostic checks.\newline
+--Diagonostic check:\newline
+Plot4: Residuals vs. Fitted \newline
+```{r, echo=FALSE}
+#plot diagnostic check plots
+plot(EducationModel,1)
+```
+
+In Plot 4, we can see that residuals points follow the straight dashed line, so we can conclude that the normality assumption is met.
+\newpage
+Plot5: Normal Q-Q\newline
+```{r,  echo=FALSE}
+#plot diagnostic check plots
+plot(EducationModel,2)
+```
+
+In Plot 5(Normal Q-Q), we can see that residuals points follow the straight dashed line to conclude that the normality assumption is met.\newline
+
+\newpage
+-- 3D-Plot \newline
+In order to test our result that there is a linear relationship between the education level of partner and the education level and income of the respondent, I set up the same regression model as we did in the model section but treated the variable RespondentIncome as a numerical variable in order to build a 3D-Plot(we can not build 3D graph by using categrical variables). And we randomly select 30 samples from the sample population to see if the model is fitted. \newline
+
+Plot6: 3D Graph for 30 Samples With Regression Plane\newline
+
+```{r, echo=FALSE, message=FALSE}
+#set seed for a sample used for future analysis
+EducationModelnew <- lm(PartnerEducationLevel~RespondentEducationLevel+RespondentIncome, data = EducationData)
+set.seed(293)
+#testing our regression model for a random sample of 30
+randomData <- sample_n(EducationData, 30)
+#draw 3d plot for the random sample and the regression model
+attach(randomData)
+s3d <-scatterplot3d(RespondentEducationLevel,RespondentIncome,PartnerEducationLevel, pch=16, highlight.3d=TRUE, type="h", main="3D Scatterplot")
+s3d$plane3d(EducationModelnew)
+
+```
+
+As we can see, in Plot 6, the dashed plane represents our estimated values of the response, and we can see that points locate around the dashed(flown) plane, thus our predict model should be correct.
+\newpage
+
+## Disscussion
+
+From the summary table we can write this model as Recall:\newline
+Equation1: Predict Equation\newline
+\[y = 1.736+0.519X_{ResspondentEducationLevel} - 0.023X_{RespondentIncome2} + 0.095X_{RespondentIncome3}\]
+\[+ 0.212X_{RespondentIncome4} + 0.152X_{RespondentIncome5} + 0.445X_{RespondentIncome6}\]
+In addition, the p-value is smaller than 2.2e-16, which means we have strong evidence against the null hypothesis. In other words, we can prove that there exists a relationship between two predictor variables and the response variable. \newline
+
+We download the Chass Data Centre datasets, and we get the related information from the Canadian General Social Survey(GSS). The datasets are not perfect because some respondents refuse to answer some of the questions(RF) or choose the option DK(don’t know)as the answer to the question. Based on these data, we cannot find that the education level of respondents and their income is positively related to the education level of partners since these data cannot generate a table to analyze. Therefore, we remove these data, which is about DK and RF.\newline
+
+The survey questions cover a wide range of information. We can get all kinds of data from the survey. Furthermore, many respondents participated in this survey, so we can collect diverse data to analyze. However, the problem is that some of the questions are too privacy, so many respondents are unwilling to fill in or lie on the answer; this will further affect the overall accuracy of the data. \newline
+
+## Weakness of model and possible future improvement:
+
+First of all, the data we are using is not perfectly accurate. However, we cannot fix this problem. Another weakness of the model is that the two predictors may have correlation, which means we should keep only one independent variable. To fix this problem, we should remember to check for a correlation between the selected independent variables in future projects. Besides, to make the model more accurate, we can take more predictors in the model. 
 
 
-
-## Discussion
-
-Here you will discuss conclusions drawn from the results and comment on how it relates to the original goal of the study (which was specified in the Introduction).
-
-# Weaknesses
-
-Here we discuss weaknesses of the study, data, analysis, etc. You can also discuss areas for improvement.
-
-# Next Steps
-
-Here you discuss subsequent work to be done after this report. This can include next steps in terms of statistical analysis (perhaps there is a more efficient algorithm available, or perhaps there is a caveat in the data that would allow for some new technique). Future steps should also be specified in terms of the study setting (eg. including a follow-up survey on something, or a subsequent study that would complement the conclusions of your report).
 
 
 ## References
+[1]“Add Text to a Plot in R Software.” STHDA, www.sthda.com/english/wiki/add-text-to-a-plot-in-r-software. \newline
+[2]Beers, Brian. “What P-Value Tells Us.” Investopedia, Investopedia, 13 Sept. 2020, www.\newline
+investopedia.com/terms/p/p-value.asp. \newline
+[3]Frost, Jim. “Significance Level.” Statistics By Jim, 5 May 2017, statisticsbyjim.com/glossary/significance-level/. \newline
+[4]Hadley Wickham, Romain François, Lionel Henry and Kirill Müller (2020). dplyr: A Grammar of Data Manipulation.https://dplyr.tidyverse.org, https://github.com/tidyverse/dplyr. \newline
+[5]Kassambara, et al. “Linear Regression Assumptions and Diagnostics in R: Essentials.” STHDA, 11 Mar. 2018, www.sthda.com/english/articles/39-regression-model-diagnostics/161-linear-regression-assumptions-and-diagnostics-in-r-essentials/. \newline
+[6]Ligges, U. and Mächler, M. (2003). Scatterplot3d - an R Package for Visualizing Multivariate Data. Journal of Statistical
+Software 8(11), 1-20.\newline
+[7]Marriage of Equals Becomes the Norm, epaper.bostonglobe.com/BostonGlobe/article_popover.aspx?guid=b6d\newline
+e7202-f21b-4ff5-8cf6-1294595a7cbd. \newline
+[8]Statistics Canada: Canada's National Statistical Agency/Statistique Canada : Organisme Statistique National Du Canada, Government of Canada, Statistics Canada, 20 Feb. 2019, www150.\newline statcan.gc.ca/n1/pub/89f0115x/89f0115x2019001-eng.htm. \newline
+[9]robk@statmethods.net, Robert Kabacoff -. “Axes and Text.” Quick-R: Axes and \newline
+Text, www.statmethods.net/advgraphs/axes.html. \newline
+[10]Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, https://doi.org/10.21105/joss.01686\newline
+
 
 
 
