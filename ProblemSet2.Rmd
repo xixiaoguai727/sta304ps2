@@ -7,13 +7,14 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+
 ```
 
 ```{r}
 #read the education data file and store the dataframe to RawData
-RawData <- read.csv('304ps2.csv') 
+RawData <- read.csv('new304.csv') 
 # select the spcific column we want(that is respondent's education level and respondent's partner's education level)
-EducationData <- data.frame(RawData$CASEID, RawData$ehg3_01b, RawData$eop_200)
+EducationData <- data.frame(RawData$CASEID, RawData$ehg3_01b, RawData$eop_200, RawData$ttlincg2)
  # rename ID colunm
 colnames(EducationData)[1]  <- 'CaseID'
  # rename the column name from question code to a description of the question(change column 1's name from ehg3_01b to RespondentEducationLevel)
@@ -21,10 +22,17 @@ colnames(EducationData)[2]  <- 'RespondentEducationLevel'
  # rename the column name from question code to a description of the question(change column 2's name from eop_200 to PartnerEducationLevel)
 colnames(EducationData)[3]  <- 'PartnerEducationLevel'
 # numbers that reperents a corresponding education level
+colnames(EducationData)[4]  <- 'RespondentIncome'
+validIncome <- c(1,2,3,4,5,6)
 vaildAnswer <- c(1,2,3,4,5,6,7)
 #since some respondent may don't have a partner or they reject to answer the such survey quetsion, so let's remove those resopndent from our data faram and only select resopondent who answer both question vaildly.
-EducationData <- EducationData[(EducationData$RespondentEducationLevel %in% vaildAnswer & EducationData$RespondentEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer ),]
+EducationData <- EducationData[(EducationData$RespondentEducationLevel %in% vaildAnswer & EducationData$RespondentEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer  & EducationData$PartnerEducationLevel %in% vaildAnswer & EducationData$RespondentIncome %in% validIncome),]
 EducationData
+summary(EducationData)
+hist(EducationData$RespondentEducationLevel)
+hist(EducationData$PartnerEducationLevel)
+hist(EducationData$RespondentIncome)
+
 
 ```
 
@@ -50,8 +58,9 @@ Introduce the data, explain why it was selected. Make sure to comment on importa
 In order to see whether there is a relationship between respondent's education level and partner's education level, I am going to start with fitting the linear regression model(a statistic analysis method to see if there is a linear relation ship). \newline
 Our null hypothesis is there is no ralationship between respondent's education level and partner's education level, and we choose the significance leve of 0.05.(The significance level is a measure of the strength of the evidence that must be present in our sample before we will reject the null hypothesis and conclude that the effect is statistically significant).
 ```{r}
-EducationModel <- lm(PartnerEducationLevel~RespondentEducationLevel, data = EducationData)
+EducationModel <- lm(PartnerEducationLevel~RespondentEducationLevel+as.factor(RespondentIncome), data = EducationData)
 summary(EducationModel)
+
 ```
 
 
